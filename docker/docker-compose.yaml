@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  # MySQL 数据库服务
+  mysql:
+    image: mysql:8.0
+    container_name: bid_engine_mysql
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=root123456
+      - MYSQL_DATABASE=bid_engine
+      - MYSQL_USER=testuser
+      - MYSQL_PASSWORD=test123456
+      - TZ=Asia/Shanghai
+    ports:
+      # 使用 4307 端口避免与本地 MySQL 冲突
+      - "4307:3306"
+    volumes:
+      # 数据持久化
+      - mysql_data:/var/lib/mysql
+      # 初始化脚本（可选）
+      # - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - bid_engine_network
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=mysql_native_password
+      - --max_connections=1000
+      - --innodb_buffer_pool_size=256M
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot123456"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Redis 缓存服务
+  redis:
+    image: redis:7-alpine
+    container_name: bid_engine_redis
+    restart: always
+    ports:
+      # 使用 4380 端口避免与本地 Redis 冲突
+      - "4380:6379"
+    volumes:
+      # 数据持久化
+      - redis_data:/data
+      # Redis 配置文件（可选）
+      # - ./redis.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      - bid_engine_network
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  bid_engine_network:
+    driver: bridge
+

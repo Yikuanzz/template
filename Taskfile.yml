@@ -1,0 +1,23 @@
+# https://taskfile.dev
+
+version: "3"
+
+tasks:
+  # 启动应用
+  backend:run:
+    desc: "启动应用"
+    cmds:
+      - task backend:fmt
+      - cd backend && set CGO_ENABLED=1 && go run app/cmd/main.go --env app/cmd/.env
+
+  # 生成 Swagger
+  backend:swagger:
+    desc: "生成 Swagger"
+    cmds:
+      - cd backend && swag init -g app/cmd/main.go -o app/docs --parseDependency --parseInternal --parseDepth 1
+
+  # 格式化
+  backend:fmt:
+    desc: "格式化代码"
+    cmds:
+      - cd backend && go fmt ./...
