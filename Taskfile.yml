@@ -3,6 +3,13 @@
 version: "3"
 
 tasks:
+  # 启动所有
+  run:
+    desc: "启动所有"
+    cmds:
+      - task backend:run
+      - task frontend:run
+
   # 启动应用
   backend:run:
     desc: "启动应用"
@@ -21,3 +28,9 @@ tasks:
     desc: "格式化代码"
     cmds:
       - cd backend && go fmt ./...
+
+  # 启动前端
+  frontend:run:
+    desc: "启动前端"
+    cmds:
+      - cd frontend && bun run dev
