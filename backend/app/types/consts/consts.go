@@ -9,6 +9,20 @@ const (
 	GINMode = "GIN_MODE"
 )
 
+// Storage 存储配置环境变量名
+const (
+	// StorageType 存储类型
+	// 可选值: local, oss
+	// 默认值: local
+	StorageType = "STORAGE_TYPE"
+	// StorageLocalPath 本地存储路径
+	// 默认值: ./uploads
+	StorageLocalPath = "STORAGE_LOCAL_PATH"
+	// StorageLocalBaseURL 本地存储访问URL
+	// 默认值: http://localhost:8080/uploads
+	StorageLocalBaseURL = "STORAGE_LOCAL_BASE_URL"
+)
+
 // JWT 配置环境变量名
 const (
 	// JWTSecret JWT Secret

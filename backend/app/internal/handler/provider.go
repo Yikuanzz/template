@@ -1,6 +1,7 @@
 package handler
 
 import (
+	fileHandler "backend/app/internal/handler/file"
 	userHandler "backend/app/internal/handler/user"
 
 	"go.uber.org/fx"
@@ -10,8 +11,8 @@ import (
 var HandlerModule = fx.Module("handler",
 	fx.Provide(
 		// User Handler
-		fx.Annotate(
-			userHandler.NewUserHandler,
-		),
+		userHandler.NewUserHandler,
+		// File Handler
+		fileHandler.NewFileHandler,
 	),
 )

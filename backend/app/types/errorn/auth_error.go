@@ -22,6 +22,7 @@ const (
 	AuthErrUserDeleteFailed  = int32(2000013) // 删除用户失败
 	AuthErrUserAlreadyExists = int32(2000014) // 用户已存在
 	AuthErrUserLocked        = int32(2000015) // 账号已被锁定
+	AuthErrUserUpdateFailed  = int32(2000016) // 更新用户信息失败
 )
 
 func init() {
@@ -43,5 +44,6 @@ func init() {
 		AuthErrUserDeleteFailed:  "删除用户失败: {reason}",
 		AuthErrUserAlreadyExists: "用户已存在: {username}",
 		AuthErrUserLocked:        "账号已被锁定，请30分钟后再试",
+		AuthErrUserUpdateFailed:  "更新用户信息失败: {reason}",
 	})
 }

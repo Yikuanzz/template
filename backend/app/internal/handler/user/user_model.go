@@ -32,3 +32,16 @@ type GetUserInfoResp struct {
 	NickName string `json:"nick_name" example:"爱丽丝"`
 	Avatar   string `json:"avatar" example:"https://example.com/avatar.jpg"`
 }
+
+// UpateUserInfoReq 更新用户信息请求
+type UpateUserInfoReq struct {
+	NickName *string `json:"nick_name" binding:"omitempty" label:"昵称" example:"爱丽丝"`
+	Avatar   *string `json:"avatar" binding:"omitempty" label:"头像" example:"https://example.com/avatar.jpg"`
+}
+
+// UpateUserInfoResp 更新用户信息响应
+type UpateUserInfoResp struct {
+	UserID   uint   `json:"user_id" example:"1"`
+	NickName string `json:"nick_name" example:"爱丽丝"`
+	Avatar   string `json:"avatar" example:"https://example.com/avatar.jpg"`
+}

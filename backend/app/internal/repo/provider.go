@@ -1,8 +1,10 @@
 package repo
 
 import (
+	fileLogic "backend/app/internal/logic/file"
 	userLogic "backend/app/internal/logic/user"
 	baseRepo "backend/app/internal/repo/base"
+	fileRepo "backend/app/internal/repo/file"
 	sysRepo "backend/app/internal/repo/sys"
 	userRepo "backend/app/internal/repo/user"
 
@@ -21,6 +23,11 @@ var RepoModule = fx.Module("repo",
 		fx.Annotate(
 			sysRepo.NewSysRepo,
 			fx.As(new(baseRepo.SysRepo)),
+		),
+		// File Repo
+		fx.Annotate(
+			fileRepo.NewFileRepo,
+			fx.As(new(fileLogic.FileRepo)),
 		),
 	),
 	// 初始化基础数据

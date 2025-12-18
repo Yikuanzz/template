@@ -1,18 +1,17 @@
 definitions:
-  handle.Response:
+  app_internal_handler_file.UploadFileResp:
     properties:
-      code:
-        description: 响应码，0 表示成功
-        example: 0
+      file_id:
+        description: 文件ID
         type: integer
-      data:
-        description: 响应数据（可选）
-      message:
-        description: 响应消息（可选）
-        example: 操作成功
+      file_name:
+        description: 文件名
+        type: string
+      file_url:
+        description: 文件访问URL
         type: string
     type: object
-  user.GetUserInfoResp:
+  app_internal_handler_user.GetUserInfoResp:
     properties:
       avatar:
         example: https://example.com/avatar.jpg
@@ -28,7 +27,7 @@ definitions:
         example: alice123
         type: string
     type: object
-  user.LoginReq:
+  app_internal_handler_user.LoginReq:
     properties:
       password:
         example: password123
@@ -44,7 +43,7 @@ definitions:
     - password
     - username
     type: object
-  user.LoginResp:
+  app_internal_handler_user.LoginResp:
     properties:
       access_token:
         example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -56,7 +55,7 @@ definitions:
         example: 1
         type: integer
     type: object
-  user.RefreshTokenReq:
+  app_internal_handler_user.RefreshTokenReq:
     properties:
       refresh_token:
         example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -64,13 +63,47 @@ definitions:
     required:
     - refresh_token
     type: object
-  user.RefreshTokenResp:
+  app_internal_handler_user.RefreshTokenResp:
     properties:
       access_token:
         example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
         type: string
       refresh_token:
         example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+    type: object
+  app_internal_handler_user.UpateUserInfoReq:
+    properties:
+      avatar:
+        example: https://example.com/avatar.jpg
+        type: string
+      nick_name:
+        example: 爱丽丝
+        type: string
+    type: object
+  app_internal_handler_user.UpateUserInfoResp:
+    properties:
+      avatar:
+        example: https://example.com/avatar.jpg
+        type: string
+      nick_name:
+        example: 爱丽丝
+        type: string
+      user_id:
+        example: 1
+        type: integer
+    type: object
+  backend_utils_handle.Response:
+    properties:
+      code:
+        description: 响应码，0 表示成功
+        example: 0
+        type: integer
+      data:
+        description: 响应数据（可选）
+      message:
+        description: 响应消息（可选）
+        example: 操作成功
         type: string
     type: object
 host: localhost:8080
@@ -87,6 +120,40 @@ info:
   title: Backend API
   version: "1.0"
 paths:
+  /api/file/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 上传文件到服务器，支持多种文件类型
+      parameters:
+      - description: 要上传的文件
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/backend_utils_handle.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/app_internal_handler_file.UploadFileResp'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/backend_utils_handle.Response'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/backend_utils_handle.Response'
+      summary: 上传文件
+      tags:
+      - 文件管理
   /api/user/info:
     get:
       consumes:
@@ -99,22 +166,58 @@ paths:
           description: 成功
           schema:
             allOf:
-            - $ref: '#/definitions/handle.Response'
+            - $ref: '#/definitions/backend_utils_handle.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/user.GetUserInfoResp'
+                  $ref: '#/definitions/app_internal_handler_user.GetUserInfoResp'
               type: object
         "401":
           description: 未授权
           schema:
-            $ref: '#/definitions/handle.Response'
+            $ref: '#/definitions/backend_utils_handle.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/handle.Response'
+            $ref: '#/definitions/backend_utils_handle.Response'
       security:
       - BearerAuth: []
       summary: 获取用户信息
+      tags:
+      - 用户认证
+    put:
+      consumes:
+      - application/json
+      description: 更新当前登录用户的基本信息和菜单列表
+      parameters:
+      - description: 更新用户信息请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/app_internal_handler_user.UpateUserInfoReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/backend_utils_handle.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/app_internal_handler_user.UpateUserInfoResp'
+              type: object
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/backend_utils_handle.Response'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/backend_utils_handle.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新用户信息
       tags:
       - 用户认证
   /api/user/login:
@@ -128,7 +231,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/user.LoginReq'
+          $ref: '#/definitions/app_internal_handler_user.LoginReq'
       produces:
       - application/json
       responses:
@@ -136,23 +239,23 @@ paths:
           description: 成功
           schema:
             allOf:
-            - $ref: '#/definitions/handle.Response'
+            - $ref: '#/definitions/backend_utils_handle.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/user.LoginResp'
+                  $ref: '#/definitions/app_internal_handler_user.LoginResp'
               type: object
         "400":
           description: 请求参数错误
           schema:
-            $ref: '#/definitions/handle.Response'
+            $ref: '#/definitions/backend_utils_handle.Response'
         "401":
           description: 用户名或密码错误
           schema:
-            $ref: '#/definitions/handle.Response'
+            $ref: '#/definitions/backend_utils_handle.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/handle.Response'
+            $ref: '#/definitions/backend_utils_handle.Response'
       summary: 用户登录
       tags:
       - 用户认证
@@ -167,7 +270,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/user.RefreshTokenReq'
+          $ref: '#/definitions/app_internal_handler_user.RefreshTokenReq'
       produces:
       - application/json
       responses:
@@ -175,23 +278,23 @@ paths:
           description: 成功
           schema:
             allOf:
-            - $ref: '#/definitions/handle.Response'
+            - $ref: '#/definitions/backend_utils_handle.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/user.RefreshTokenResp'
+                  $ref: '#/definitions/app_internal_handler_user.RefreshTokenResp'
               type: object
         "400":
           description: 请求参数错误
           schema:
-            $ref: '#/definitions/handle.Response'
+            $ref: '#/definitions/backend_utils_handle.Response'
         "401":
           description: 刷新令牌无效或已过期
           schema:
-            $ref: '#/definitions/handle.Response'
+            $ref: '#/definitions/backend_utils_handle.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/handle.Response'
+            $ref: '#/definitions/backend_utils_handle.Response'
       summary: 刷新访问令牌
       tags:
       - 用户认证

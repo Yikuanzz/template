@@ -1,6 +1,7 @@
 package router
 
 import (
+	"backend/app/internal/handler/file"
 	"backend/app/internal/handler/user"
 	"backend/app/server/middleware"
 
@@ -8,8 +9,9 @@ import (
 )
 
 // SetupAPIRouter 设置 API 路由
-// handler: User 处理器
-func SetupAPIRouter(r *gin.Engine, userHandler *user.UserHandler) {
+// userHandler: User 处理器
+// fileHandler: File 处理器
+func SetupAPIRouter(r *gin.Engine, userHandler *user.UserHandler, fileHandler *file.FileHandler) {
 	api := r.Group("/api")
 
 	// 用户相关路由
@@ -21,5 +23,12 @@ func SetupAPIRouter(r *gin.Engine, userHandler *user.UserHandler) {
 		userGroupAuth := userGroup.Group("")
 		userGroupAuth.Use(middleware.AuthMiddleware())
 		userGroupAuth.GET("/info", userHandler.GetUserInfo)
+		userGroupAuth.PUT("/info", userHandler.UpateUserInfo)
+	}
+
+	// 文件相关路由
+	{
+		fileGroup := api.Group("/file")
+		fileGroup.POST("/upload", fileHandler.UploadFile)
 	}
 }

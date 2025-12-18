@@ -5,8 +5,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"path/filepath"
 	"strconv"
+	"strings"
 
+	"backend/app/internal/handler/file"
 	"backend/app/internal/handler/user"
 	"backend/app/server/middleware"
 	"backend/app/server/router"
@@ -23,6 +27,7 @@ type HTTPServerParams struct {
 	fx.In
 	Lifecycle   fx.Lifecycle
 	UserHandler *user.UserHandler
+	FileHandler *file.FileHandler
 }
 
 // HTTPServer 创建 HTTP 服务器
@@ -51,8 +56,11 @@ func HTTPServer(params HTTPServerParams) *http.Server {
 
 	// 设置路由
 
+	// 静态文件服务（用于访问上传的文件）
+	setupStaticFileServer(r)
+
 	// API 路由
-	router.SetupAPIRouter(r, params.UserHandler)
+	router.SetupAPIRouter(r, params.UserHandler, params.FileHandler)
 
 	// Swagger 路由
 	router.SetupSwaggerRouter(r)
@@ -104,4 +112,56 @@ func HTTPServer(params HTTPServerParams) *http.Server {
 	})
 
 	return srv
+}
+
+// setupStaticFileServer 设置静态文件服务器
+func setupStaticFileServer(r *gin.Engine) {
+	// 读取本地存储路径
+	storageLocalPath := envx.GetStringOptional(consts.StorageLocalPath)
+	if storageLocalPath == "" {
+		storageLocalPath = "./uploads" // 默认路径
+		logs.Info("未配置本地存储路径，使用默认值: ./uploads")
+	}
+
+	// 读取本地存储访问URL
+	storageLocalBaseURL := envx.GetStringOptional(consts.StorageLocalBaseURL)
+	if storageLocalBaseURL == "" {
+		// 如果没有配置，使用默认路径
+		storageLocalBaseURL = "/uploads"
+		logs.Info("未配置本地存储访问URL，使用默认路径: /uploads")
+	} else {
+		// 从完整URL中提取路径部分
+		parsedURL, err := url.Parse(storageLocalBaseURL)
+		if err != nil {
+			logs.Warn("解析 StorageLocalBaseURL 失败，使用默认路径", "error", err.Error(), "url", storageLocalBaseURL)
+			storageLocalBaseURL = "/uploads"
+		} else {
+			storageLocalBaseURL = parsedURL.Path
+			// 如果路径为空，使用默认路径
+			if storageLocalBaseURL == "" {
+				storageLocalBaseURL = "/uploads"
+			}
+		}
+	}
+
+	// 确保路径以 / 开头
+	if !strings.HasPrefix(storageLocalBaseURL, "/") {
+		storageLocalBaseURL = "/" + storageLocalBaseURL
+	}
+
+	// 移除路径末尾的 /
+	storageLocalBaseURL = strings.TrimSuffix(storageLocalBaseURL, "/")
+
+	// 转换为绝对路径
+	absPath, err := filepath.Abs(storageLocalPath)
+	if err != nil {
+		logs.Error("获取绝对路径失败", "error", err.Error(), "path", storageLocalPath)
+		absPath = storageLocalPath
+	}
+
+	// 设置静态文件服务
+	// 使用 StaticFS 可以更好地控制文件访问
+	r.StaticFS(storageLocalBaseURL, http.Dir(absPath))
+
+	logs.Info("静态文件服务已配置", "url_path", storageLocalBaseURL, "file_path", absPath)
 }

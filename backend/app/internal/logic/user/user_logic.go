@@ -22,6 +22,7 @@ import (
 type UserRepo interface {
 	GetUserByUsername(ctx context.Context, username string) (*userModel.User, error)
 	GetUserByID(ctx context.Context, userID uint) (*userModel.User, error)
+	UpdateUserInfo(ctx context.Context, userID uint, updates map[string]interface{}) error
 }
 
 type UserLogicParams struct {
@@ -179,6 +180,63 @@ func (l *UserLogic) GetUserInfo(ctx context.Context) (*dto.UserDTO, error) {
 	}
 
 	// 查询用户信息
+	user, err := l.userRepo.GetUserByID(ctx, userID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			logs.CtxWarnf(ctx, "用户不存在: user_id=%d", userID)
+			return nil, errorx.New(authError.AuthErrUserNotFound, errorx.Kf("user_uid", "%d", userID))
+		}
+		logs.CtxErrorf(ctx, "查询用户失败: user_id=%d, error=%s", userID, err.Error())
+		return nil, errorx.Wrap(err, authError.AuthErrUserNotFound, errorx.Kf("user_uid", "%d", userID))
+	}
+
+	// 构建返回数据
+	userDTO := &dto.UserDTO{
+		UserID:   user.ID,
+		Username: user.Username,
+		NickName: user.NickName,
+		Avatar:   user.Avatar,
+	}
+
+	return userDTO, nil
+}
+
+func (l *UserLogic) UpdateUserInfo(ctx context.Context, nickName *string, avatar *string) (*dto.UserDTO, error) {
+	// 从 context 中获取用户ID
+	userIDValue := ctx.Value(meta.ContextKeyUserID)
+	if userIDValue == nil {
+		logs.CtxWarnf(ctx, "context 中未找到 user_id")
+		return nil, errorx.New(authError.AuthErrTokenRequired)
+	}
+
+	userID, ok := userIDValue.(uint)
+	if !ok {
+		logs.CtxWarnf(ctx, "context 中的 user_id 类型错误")
+		return nil, errorx.New(authError.AuthErrTokenInvalid)
+	}
+
+	// 构建更新字段
+	updates := make(map[string]interface{})
+	if nickName != nil {
+		updates["nick_name"] = *nickName
+	}
+	if avatar != nil {
+		updates["avatar"] = *avatar
+	}
+
+	// 如果没有需要更新的字段，直接返回当前用户信息
+	if len(updates) == 0 {
+		return l.GetUserInfo(ctx)
+	}
+
+	// 更新用户信息
+	err := l.userRepo.UpdateUserInfo(ctx, userID, updates)
+	if err != nil {
+		logs.CtxErrorf(ctx, "更新用户信息失败: user_id=%d, error=%s", userID, err.Error())
+		return nil, errorx.Wrap(err, authError.AuthErrUserUpdateFailed)
+	}
+
+	// 重新查询用户信息
 	user, err := l.userRepo.GetUserByID(ctx, userID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

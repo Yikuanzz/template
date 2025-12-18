@@ -24,6 +24,62 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/file/upload": {
+            "post": {
+                "description": "上传文件到服务器，支持多种文件类型",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "文件管理"
+                ],
+                "summary": "上传文件",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "要上传的文件",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/backend_utils_handle.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/app_internal_handler_file.UploadFileResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/backend_utils_handle.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/backend_utils_handle.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/user/info": {
             "get": {
                 "security": [
@@ -48,13 +104,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/handle.Response"
+                                    "$ref": "#/definitions/backend_utils_handle.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/user.GetUserInfoResp"
+                                            "$ref": "#/definitions/app_internal_handler_user.GetUserInfoResp"
                                         }
                                     }
                                 }
@@ -64,13 +120,74 @@ const docTemplate = `{
                     "401": {
                         "description": "未授权",
                         "schema": {
-                            "$ref": "#/definitions/handle.Response"
+                            "$ref": "#/definitions/backend_utils_handle.Response"
                         }
                     },
                     "500": {
                         "description": "服务器内部错误",
                         "schema": {
-                            "$ref": "#/definitions/handle.Response"
+                            "$ref": "#/definitions/backend_utils_handle.Response"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "更新当前登录用户的基本信息和菜单列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户认证"
+                ],
+                "summary": "更新用户信息",
+                "parameters": [
+                    {
+                        "description": "更新用户信息请求",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/app_internal_handler_user.UpateUserInfoReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/backend_utils_handle.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/app_internal_handler_user.UpateUserInfoResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/backend_utils_handle.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/backend_utils_handle.Response"
                         }
                     }
                 }
@@ -96,7 +213,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/user.LoginReq"
+                            "$ref": "#/definitions/app_internal_handler_user.LoginReq"
                         }
                     }
                 ],
@@ -106,13 +223,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/handle.Response"
+                                    "$ref": "#/definitions/backend_utils_handle.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/user.LoginResp"
+                                            "$ref": "#/definitions/app_internal_handler_user.LoginResp"
                                         }
                                     }
                                 }
@@ -122,19 +239,19 @@ const docTemplate = `{
                     "400": {
                         "description": "请求参数错误",
                         "schema": {
-                            "$ref": "#/definitions/handle.Response"
+                            "$ref": "#/definitions/backend_utils_handle.Response"
                         }
                     },
                     "401": {
                         "description": "用户名或密码错误",
                         "schema": {
-                            "$ref": "#/definitions/handle.Response"
+                            "$ref": "#/definitions/backend_utils_handle.Response"
                         }
                     },
                     "500": {
                         "description": "服务器内部错误",
                         "schema": {
-                            "$ref": "#/definitions/handle.Response"
+                            "$ref": "#/definitions/backend_utils_handle.Response"
                         }
                     }
                 }
@@ -160,7 +277,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/user.RefreshTokenReq"
+                            "$ref": "#/definitions/app_internal_handler_user.RefreshTokenReq"
                         }
                     }
                 ],
@@ -170,13 +287,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/handle.Response"
+                                    "$ref": "#/definitions/backend_utils_handle.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/user.RefreshTokenResp"
+                                            "$ref": "#/definitions/app_internal_handler_user.RefreshTokenResp"
                                         }
                                     }
                                 }
@@ -186,19 +303,19 @@ const docTemplate = `{
                     "400": {
                         "description": "请求参数错误",
                         "schema": {
-                            "$ref": "#/definitions/handle.Response"
+                            "$ref": "#/definitions/backend_utils_handle.Response"
                         }
                     },
                     "401": {
                         "description": "刷新令牌无效或已过期",
                         "schema": {
-                            "$ref": "#/definitions/handle.Response"
+                            "$ref": "#/definitions/backend_utils_handle.Response"
                         }
                     },
                     "500": {
                         "description": "服务器内部错误",
                         "schema": {
-                            "$ref": "#/definitions/handle.Response"
+                            "$ref": "#/definitions/backend_utils_handle.Response"
                         }
                     }
                 }
@@ -206,25 +323,24 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "handle.Response": {
+        "app_internal_handler_file.UploadFileResp": {
             "type": "object",
             "properties": {
-                "code": {
-                    "description": "响应码，0 表示成功",
-                    "type": "integer",
-                    "example": 0
+                "file_id": {
+                    "description": "文件ID",
+                    "type": "integer"
                 },
-                "data": {
-                    "description": "响应数据（可选）"
+                "file_name": {
+                    "description": "文件名",
+                    "type": "string"
                 },
-                "message": {
-                    "description": "响应消息（可选）",
-                    "type": "string",
-                    "example": "操作成功"
+                "file_url": {
+                    "description": "文件访问URL",
+                    "type": "string"
                 }
             }
         },
-        "user.GetUserInfoResp": {
+        "app_internal_handler_user.GetUserInfoResp": {
             "type": "object",
             "properties": {
                 "avatar": {
@@ -246,7 +362,7 @@ const docTemplate = `{
                 }
             }
         },
-        "user.LoginReq": {
+        "app_internal_handler_user.LoginReq": {
             "type": "object",
             "required": [
                 "password",
@@ -267,7 +383,7 @@ const docTemplate = `{
                 }
             }
         },
-        "user.LoginResp": {
+        "app_internal_handler_user.LoginResp": {
             "type": "object",
             "properties": {
                 "access_token": {
@@ -284,7 +400,7 @@ const docTemplate = `{
                 }
             }
         },
-        "user.RefreshTokenReq": {
+        "app_internal_handler_user.RefreshTokenReq": {
             "type": "object",
             "required": [
                 "refresh_token"
@@ -296,7 +412,7 @@ const docTemplate = `{
                 }
             }
         },
-        "user.RefreshTokenResp": {
+        "app_internal_handler_user.RefreshTokenResp": {
             "type": "object",
             "properties": {
                 "access_token": {
@@ -306,6 +422,54 @@ const docTemplate = `{
                 "refresh_token": {
                     "type": "string",
                     "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                }
+            }
+        },
+        "app_internal_handler_user.UpateUserInfoReq": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string",
+                    "example": "https://example.com/avatar.jpg"
+                },
+                "nick_name": {
+                    "type": "string",
+                    "example": "爱丽丝"
+                }
+            }
+        },
+        "app_internal_handler_user.UpateUserInfoResp": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string",
+                    "example": "https://example.com/avatar.jpg"
+                },
+                "nick_name": {
+                    "type": "string",
+                    "example": "爱丽丝"
+                },
+                "user_id": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "backend_utils_handle.Response": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "响应码，0 表示成功",
+                    "type": "integer",
+                    "example": 0
+                },
+                "data": {
+                    "description": "响应数据（可选）"
+                },
+                "message": {
+                    "description": "响应消息（可选）",
+                    "type": "string",
+                    "example": "操作成功"
                 }
             }
         }

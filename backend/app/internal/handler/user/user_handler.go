@@ -17,6 +17,7 @@ type UserLogic interface {
 	Login(ctx context.Context, username string, password string) (*dto.UserDTO, *dto.TokenDTO, error)
 	RefreshToken(ctx context.Context, refreshToken string) (*dto.TokenDTO, error)
 	GetUserInfo(ctx context.Context) (*dto.UserDTO, error)
+	UpdateUserInfo(ctx context.Context, nickName *string, avatar *string) (*dto.UserDTO, error)
 }
 
 type UserHandlerParams struct {
@@ -140,5 +141,40 @@ func (h *UserHandler) GetUserInfo(c *gin.Context) {
 		Username: u.Username,
 		NickName: u.NickName,
 		Avatar:   u.Avatar,
+	})
+}
+
+// UpateUserInfo 更新用户信息
+// @Summary 更新用户信息
+// @Description 更新当前登录用户的基本信息和菜单列表
+// @Tags 用户认证
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body UpateUserInfoReq true "更新用户信息请求"
+// @Success 200 {object} handle.Response{data=UpateUserInfoResp} "成功"
+// @Failure 401 {object} handle.Response "未授权"
+// @Failure 500 {object} handle.Response "服务器内部错误"
+// @Router /api/user/info [put]
+func (h *UserHandler) UpateUserInfo(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	var req UpateUserInfoReq
+	if err := bind.ShouldBindJSON(c, &req, userBindConfig); err != nil {
+		handle.HandleErrorWithContext(c, err, "更新用户信息", nil)
+		return
+	}
+
+	result, err := h.userLogic.UpdateUserInfo(ctx, req.NickName, req.Avatar)
+	if err != nil {
+		handle.HandleErrorWithContext(c, err, "更新用户信息", nil)
+		return
+	}
+
+	logs.CtxInfof(ctx, "更新用户信息成功: user_id=%d", result.UserID)
+	handle.Success(c, UpateUserInfoResp{
+		UserID:   result.UserID,
+		NickName: result.NickName,
+		Avatar:   result.Avatar,
 	})
 }
