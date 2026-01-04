@@ -510,11 +510,11 @@ function ProtectedRoute({ children }: ProtectedRouteProps) {
  */
 export const env = {
   // API 配置
-  apiUrl: import.meta.env.BACKEND_SERVER_API_URL || 'http://localhost:6512',
-  apiPrefix: import.meta.env.BACKEND_SERVER_API_PREFIX || '/api',
-  apiTimeout: Number(import.meta.env.BACKEND_SERVER_API_TIMEOUT) || 100000,
+  apiUrl: import.meta.env.VITE_API_URL || 'http://localhost:6512',
+  apiPrefix: import.meta.env.VITE_API_PREFIX || '/api',
+  apiTimeout: Number(import.meta.env.VITE_API_TIMEOUT) || 100000,
 }
-
+/
 // 使用方式
 import { env } from '@/utils/env'
 const baseURL = `${env.apiUrl}${env.apiPrefix}`
@@ -522,9 +522,9 @@ const baseURL = `${env.apiUrl}${env.apiPrefix}`
 
 ### 环境变量列表
 
-- `BACKEND_SERVER_API_URL`: 后端 API 服务器地址
-- `BACKEND_SERVER_API_PREFIX`: API 路径前缀
-- `BACKEND_SERVER_API_TIMEOUT`: API 请求超时时间（毫秒）
+- `VITE_API_URL`: 后端 API 服务器地址
+- `VITE_API_PREFIX`: API 路径前缀
+- `VITE_API_TIMEOUT`: API 请求超时时间（毫秒）
 
 ## 最佳实践
 
