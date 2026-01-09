@@ -38,10 +38,10 @@ function Login() {
 
     try {
       const response = await login({ username, password })
-      
+
       // 保存 tokens
       setTokens(response.access_token, response.refresh_token)
-      
+
       // 保存 user_id
       localStorage.setItem('user_id', String(response.user_id))
 
@@ -59,9 +59,7 @@ function Login() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-center text-2xl font-bold">欢迎回来 👋</CardTitle>
-          <CardDescription className="text-center">
-            请输入您的账号和密码登录
-          </CardDescription>
+          <CardDescription className="text-center">请输入您的账号和密码登录</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -72,7 +70,7 @@ function Login() {
                 type="text"
                 placeholder="请输入用户名"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={e => setUsername(e.target.value)}
                 disabled={loading}
                 required
                 minLength={3}
@@ -87,7 +85,7 @@ function Login() {
                 type="password"
                 placeholder="请输入密码"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={e => setPassword(e.target.value)}
                 disabled={loading}
                 required
                 minLength={8}
@@ -95,11 +93,7 @@ function Login() {
               />
             </div>
 
-            {error && (
-              <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">
-                {error}
-              </div>
-            )}
+            {error && <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">{error}</div>}
 
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? '登录中...' : '登录'}
@@ -107,8 +101,8 @@ function Login() {
           </form>
 
           <div className="mt-4 text-center text-sm text-muted-foreground">
-            <p>测试账号：alice123</p>
-            <p>测试密码：password123</p>
+            <p>测试账号：admin</p>
+            <p>测试密码：12345678</p>
           </div>
         </CardContent>
       </Card>
@@ -117,4 +111,3 @@ function Login() {
 }
 
 export default Login
-
